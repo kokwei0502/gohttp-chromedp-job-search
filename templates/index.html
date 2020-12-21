@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../static/css/index.css" />
+    <link rel="stylesheet" href="../static/css/header.css" />
+    <link rel="stylesheet" href="../static/css/search-results-section.css">
+    <title>Document</title>
+  </head>
+  <body>
+    {{template "header" .}}
+    <section class="container-search">
+      <form action="" method="post" class="form-search">
+        <div class="search-input">
+          <label for="search-keywords"></span>Search Keywords : </label>
+          <input type="text" name="search-keywords" id="search-keywords" />
+        </div>
+        <div class="radio-selection"> 
+          <label for="indeed"><img src="../static/images/indeed.png" alt=""><input type="radio" name="search-platform" id="indeed" value="indeed" /><span class="checked-span"></span></label>
+          <label for="jobstreet"><img src="../static/images/jobstreet.png" alt=""><input type="radio" name="search-platform" id="jobstreet" value="jobstreet" /><span class="checked-span"></span></label>
+          <label for="jobsdb"><img src="../static/images/jobsdb.png" alt=""><input type="radio" name="search-platform" id="jobsdb" value="jobsdb" /><span class="checked-span"></span></label>
+        </div>
+        <div class="submit-div">
+          <button type="submit">Search</button>
+        </div>
+      </form>
+    </section>
+    
+    {{$errmessage := .ErrMessage}}
+    {{$jobstreet := .JobStreetSearchResults}}
+    {{if $errmessage}}
+    <section class="err-message-container">
+      <div class="err-message">
+        <span>{{$errmessage}}</span>
+      </div> 
+    </section> 
+    {{end}}
+    {{if $jobstreet}} 
+    {{template "jobstreetHTML" .}}
+    {{end}}
+  </body>
+</html>

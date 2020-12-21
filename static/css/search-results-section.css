@@ -1,0 +1,40 @@
+.search-results-container {
+  margin: 5% 5%;
+}
+
+.search-results-container table {
+  table-layout: fixed;
+  width: 100%;
+  position: relative;
+  /* border-collapse: collapse; */
+}
+
+.search-results-container table thead tr th {
+  border-bottom: 1px solid rgb(43, 43, 43);
+  font-size: 1.5rem;
+  padding: 0 10px;
+  background: white;
+  position: sticky;
+  top: 0;
+}
+
+.search-results-container table tbody tr td {
+  word-wrap: break-word;
+}
+
+.search-results-table {
+  margin-top: 5%;
+  height: 500px;
+  overflow-y: auto;
+}
+
+.search-results-info {
+  text-align: center;
+  font-weight: 900;
+  font-size: 1.2rem;
+}
+
+.total-re {
+  font-size: 1.5rem;
+  color: red;
+}
