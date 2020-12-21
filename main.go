@@ -24,6 +24,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// _, b, c := controllers.GetIndeedData("admin assistant")
+	// for _, i := range a {
+	// 	fmt.Println(i.Company)
+	// 	fmt.Println(i.Title)
+	// 	fmt.Println(i.Location)
+	// 	fmt.Println(i.Salary)
+	// 	fmt.Println(i.DateCreated)
+	// 	fmt.Println(i.Link)
+	// 	fmt.Println("------------------------------")
+	// }
+	// fmt.Println(b)
+	// fmt.Println(c)
+
 	// a, b, _ := controllers.GetJobstreetData("admin assistant")
 	// fmt.Println(b)
 	// for _, i := range a {

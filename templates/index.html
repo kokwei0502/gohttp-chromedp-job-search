@@ -29,6 +29,7 @@
     
     {{$errmessage := .ErrMessage}}
     {{$jobstreet := .JobStreetSearchResults}}
+    {{$indeed := .IndeedSearchResults}}
     {{if $errmessage}}
     <section class="err-message-container">
       <div class="err-message">
@@ -39,5 +40,9 @@
     {{if $jobstreet}} 
     {{template "jobstreetHTML" .}}
     {{end}}
+    {{if $indeed}} 
+    {{template "indeedHTML" .}}
+    {{end}}
+    
   </body>
 </html>

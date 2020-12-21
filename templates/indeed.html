@@ -1,0 +1,35 @@
+{{define "indeedHTML"}}
+{{$totalresult := .TotalResultsFound}} 
+{{$indeed := .IndeedSearchResults}} 
+<section class="search-results-container">
+  <div class="search-results-info">
+    <span><span class="total-re">{{$totalresult}}</span> Results Found !</span>
+  </div>
+  <div class="search-results-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Company</th>
+        <th>Location</th>
+        <th>Salary</th>
+        <th>Date Created</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range $indeed}}
+      <tr>
+        <td>{{.Title}}</td>
+        <td>{{.Company}}</td>
+        <td>{{.Location}}</td>
+        <td>{{.Salary}}</td>
+        <td>{{.DateCreated}}</td>
+        <td><a href="{{.Link}}">Link To Indeed</a></td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+</section>
+{{end}}
