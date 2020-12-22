@@ -11,6 +11,7 @@ import (
 type PageData struct {
 	IndeedSearchResults    []*controllers.IndeedDetail
 	JobStreetSearchResults []*controllers.JobStreetDetail
+	JobsDBSearchResults    []*controllers.JobsDBDetail
 	ErrMessage             string
 	TotalResultsFound      int
 }
@@ -21,6 +22,7 @@ var (
 	totalResult     int
 	jobstreetSearch []*controllers.JobStreetDetail
 	indeedSearch    []*controllers.IndeedDetail
+	jobsdbSearch    []*controllers.JobsDBDetail
 )
 
 // WebIndexPage = index page
@@ -34,10 +36,16 @@ func WebIndexPage(w http.ResponseWriter, r *http.Request) {
 			switch searchPlatform {
 			case "indeed":
 				jobstreetSearch = nil
+				jobsdbSearch = nil
 				indeedSearch, errMsg, totalResult = controllers.GetIndeedData(inputSearch)
 			case "jobstreet":
 				indeedSearch = nil
+				jobsdbSearch = nil
 				jobstreetSearch, errMsg, totalResult = controllers.GetJobstreetData(inputSearch)
+			case "jobsdb":
+				indeedSearch = nil
+				jobstreetSearch = nil
+				jobsdbSearch, errMsg, totalResult = controllers.GetJobsDBData(inputSearch)
 			}
 		}
 
@@ -45,6 +53,7 @@ func WebIndexPage(w http.ResponseWriter, r *http.Request) {
 	pageData := &PageData{
 		IndeedSearchResults:    indeedSearch,
 		JobStreetSearchResults: jobstreetSearch,
+		JobsDBSearchResults:    jobsdbSearch,
 		ErrMessage:             errMsg,
 		TotalResultsFound:      totalResult,
 	}

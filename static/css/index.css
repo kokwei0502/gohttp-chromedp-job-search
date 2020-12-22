@@ -122,7 +122,14 @@ input[type="radio"]:checked ~ .checked-span::before {
 .submit-div {
   margin-top: 3%;
   grid-row: 3;
-  align-self: center;
+  position: relative;
+  /* align-self: center; */
+}
+
+.submit-div div.loader {
+  position: absolute;
+  top: 0;
+  left: 46%;
 }
 
 .submit-div button {

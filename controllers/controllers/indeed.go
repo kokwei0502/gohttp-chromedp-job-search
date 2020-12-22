@@ -11,6 +11,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+// IndeedDetail = indeed.com detail structure
 type IndeedDetail struct {
 	Title       string
 	Company     string
@@ -35,6 +36,7 @@ var (
 	endTime                                                                                 time.Duration
 )
 
+// GetIndeedData = Scrape datas from indeed.com
 func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string, TotalIndeed int) {
 	startTime = time.Now()
 	searchString := strings.ReplaceAll(search, " ", "+")

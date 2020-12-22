@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="../static/css/index.css" />
     <link rel="stylesheet" href="../static/css/header.css" />
     <link rel="stylesheet" href="../static/css/search-results-section.css">
+    <link rel="stylesheet" href="../static/css/loader.css">
     <title>Document</title>
   </head>
   <body>
@@ -22,7 +23,8 @@
           <label for="jobsdb"><img src="../static/images/jobsdb.png" alt=""><input type="radio" name="search-platform" id="jobsdb" value="jobsdb" /><span class="checked-span"></span></label>
         </div>
         <div class="submit-div">
-          <button type="submit">Search</button>
+          <button type="submit" onclick="showLoader()" id="search-submit">Search</button>
+          <div class="loader" id="loader"></div>
         </div>
       </form>
     </section>
@@ -30,6 +32,8 @@
     {{$errmessage := .ErrMessage}}
     {{$jobstreet := .JobStreetSearchResults}}
     {{$indeed := .IndeedSearchResults}}
+    {{$jobsdb := .JobsDBSearchResults}}
+     
     {{if $errmessage}}
     <section class="err-message-container">
       <div class="err-message">
@@ -43,6 +47,9 @@
     {{if $indeed}} 
     {{template "indeedHTML" .}}
     {{end}}
-    
+    {{if $jobsdb}} 
+    {{template "jobsdbHTML" .}}
+    {{end}}
+    <script src="../static/js/loader.js"></script>
   </body>
 </html>

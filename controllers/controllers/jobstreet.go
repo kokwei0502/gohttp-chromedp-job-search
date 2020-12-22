@@ -19,6 +19,7 @@ var (
 	jobstrErrMsg                                                                     string
 )
 
+// JobStreetDetail = jobstreet.com data structure
 type JobStreetDetail struct {
 	Title       string
 	Company     string
@@ -28,6 +29,7 @@ type JobStreetDetail struct {
 	Link        string
 }
 
+// GetJobstreetData = Scrape data from jobstreet.com
 func GetJobstreetData(search string) (JobStreetResult []*JobStreetDetail, Message string, TotalJobStreet int) {
 	var jobstreetList []*JobStreetDetail
 	searchContent := strings.ReplaceAll(search, " ", "-")
@@ -37,7 +39,7 @@ func GetJobstreetData(search string) (JobStreetResult []*JobStreetDetail, Messag
 		chromedp.WithLogf(log.Printf),
 	)
 	defer cancel()
-	ctx, cancel = context.WithTimeout(ctx, 3*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(jobStreetURL),

@@ -1,0 +1,39 @@
+{{define "jobsdbHTML"}}
+{{$totalresult := .TotalResultsFound}} 
+{{$jobsdb := .JobsDBSearchResults}} 
+<section class="search-results-container">
+  <div class="search-results-info">
+    <span><span class="total-re">{{$totalresult}}</span> Results Found !</span>
+  </div>
+  <div class="search-results-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Company</th>
+        <th>Location</th>
+        <th>Salary</th>
+        <th>Date Created</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range $jobsdb}}
+      <tr>
+        <td>{{.Title}}</td>
+        <td>{{.Company}}</td>
+        <td>{{.Location}}</td>
+        <td>{{.Salary}}</td>
+        <td>{{.DateCreated}}</td>
+        {{if .Link}}
+        <td><a href="{{.Link}}">Link To JobsDB</a></td>
+        {{else}}
+        <td>{{.Link}}</td>
+        {{end}}
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+</section>
+{{end}}
