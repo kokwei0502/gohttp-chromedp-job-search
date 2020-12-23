@@ -39,31 +39,48 @@ var (
 // GetIndeedData = Scrape datas from indeed.com
 func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string, TotalIndeed int) {
 	startTime = time.Now()
+
+	// Replace search keywords to correct format for indeed.com
 	searchString := strings.ReplaceAll(search, " ", "+")
 	indeedURL = strings.Replace(indeedURL, "{jobsearch}", searchString, 1)
+
+	// Create new context background
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
 		chromedp.WithLogf(log.Printf),
 	)
 	defer cancel()
+
+	// Set the timeout limit
 	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
+
+	// Start to navigate to indeed.com URL
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(indeedURL),
 		chromedp.Sleep(1*time.Second),
 	); err != nil {
-		indeedMsg = "Navigation Error, Please Try Again Later!"
+		indeedMsg = fmt.Sprintf("Navigation Error, Please Try Again Later!\n%v", err)
 		return indeedDataList, indeedMsg, 0
 	}
+
+	// Looping to get data until timeout limit reached / total data limit reached / pages limit reached
 	for {
+		// Initial URL, is the base URL, will change if next page navigation needs
 		indeedNextPage = indeedBaseURL
+
+		// Get the main section data
 		if err := chromedp.Run(ctx,
 			chromedp.Nodes(`div.jobsearch-SerpJobCard`, &nodeIndeedMain, chromedp.ByQueryAll, chromedp.AtLeast(0)),
 		); err != nil {
-			indeedMsg = "Error to Get Main Division, Please Try Again Later"
-			return indeedDataList, indeedMsg, 0
+			indeedMsg = fmt.Sprintf("Error to Get Main Division, Please Try Again Later\n%v", err)
+			return indeedDataList, indeedMsg, totalIndeedfound
 		}
+
+		// If main section found, sum the total found
 		totalIndeedfound += len(nodeIndeedMain)
+
+		// If main section data > 0, get the detail data
 		for i := 0; i < len(nodeIndeedMain); i++ {
 			if err := chromedp.Run(ctx,
 				chromedp.AttributeValue(`h2.title > a`, "title", &indeedTitle, &boolTitle, chromedp.ByQuery, chromedp.AtLeast(0), chromedp.FromNode(nodeIndeedMain[i])),
@@ -73,8 +90,8 @@ func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string,
 				chromedp.Text(`span.date`, &indeedDateCreated, chromedp.ByQuery, chromedp.AtLeast(0), chromedp.FromNode(nodeIndeedMain[i])),
 				chromedp.AttributeValue("h2.title > a", "href", &indeedLink, &boolLink, chromedp.ByQuery, chromedp.AtLeast(0), chromedp.FromNode(nodeIndeedMain[i])),
 			); err != nil {
-				indeedMsg = "Error to Get Informations, Please Try Again Later"
-				return indeedDataList, indeedMsg, 0
+				indeedMsg = fmt.Sprintf("Error to Get Informations, Please Try Again Later\n%v", err)
+				return indeedDataList, indeedMsg, totalIndeedfound
 			}
 			if len(nodeIndeedSalary) == 0 {
 				indeedSalary = "No Stated"
@@ -83,10 +100,12 @@ func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string,
 					chromedp.Text(`span.salaryText`, &indeedSalary, chromedp.ByQuery, chromedp.AtLeast(0), chromedp.FromNode(nodeIndeedMain[i])),
 				); err != nil {
 					indeedMsg = "Error to Get Salary Division, Please Try Again!"
-					return indeedDataList, indeedMsg, 0
+					return indeedDataList, indeedMsg, totalIndeedfound
 				}
 			}
 			indeedLink = indeedBaseURL + indeedLink
+
+			// Append data get to list
 			indeedDataList = append(indeedDataList, &IndeedDetail{
 				Title:       indeedTitle,
 				Company:     indeedCompany,
@@ -98,17 +117,20 @@ func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string,
 
 		}
 
+		// If data limit reached will break the loop, else continue
 		if totalIndeedfound > 500 {
 			break
 		} else {
+			// Check the next page division availability
 			if err := chromedp.Run(ctx,
 				chromedp.Nodes(`ul.pagination-list li`, &nodeIndeedNext, chromedp.ByQueryAll, chromedp.AtLeast(0)),
 			); err != nil {
-				indeedMsg = "Error to Navigate to Next Page, Please Try Again!"
+				indeedMsg = fmt.Sprintf("Error to Navigate to Next Page, Please Try Again!\n%v", err)
 				return indeedDataList, indeedMsg, totalIndeedfound
 			}
 		}
-		fmt.Println(len(nodeIndeedNext))
+
+		// Create temparory data list for next page navigation data
 		var nodeIndeedTemp []*cdp.Node
 		if len(nodeIndeedNext) > 1 {
 			if err := chromedp.Run(ctx,
@@ -118,7 +140,9 @@ func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string,
 				return indeedDataList, indeedMsg, totalIndeedfound
 			}
 		}
-		fmt.Println(len(nodeIndeedTemp))
+
+		// If next page navigation data is found, will get the href link and return to initial URL to navigate
+		// and continue to loop for getting data
 		if len(nodeIndeedTemp) == 1 {
 			if err := chromedp.Run(ctx,
 				chromedp.Attributes("a", &indeedNextPageMap, chromedp.ByQuery, chromedp.AtLeast(0), chromedp.FromNode(nodeIndeedNext[len(nodeIndeedNext)-1])),
@@ -127,40 +151,25 @@ func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string,
 				return indeedDataList, indeedMsg, totalIndeedfound
 			}
 			if val, ok := indeedNextPageMap["aria-label"]; ok {
-				fmt.Println(val)
 				if val == "Next" {
 					indeedNextPage = indeedBaseURL + indeedNextPageMap["href"]
 					if err := chromedp.Run(ctx,
 						chromedp.Navigate(indeedNextPage),
 						chromedp.Sleep(2*time.Second),
 					); err != nil {
-						indeedMsg = "Failed to Get Next Page Navigation Button, Please Retry!"
+						indeedMsg = fmt.Sprintf("Failed to Get Next Page Navigation Button, Please Retry!\n%v", err)
 						return indeedDataList, indeedMsg, totalIndeedfound
 					}
-				} else {
-					indeedMsg = "Successfully Scrape Datas From indeed.com"
-					return indeedDataList, indeedMsg, totalIndeedfound
 				}
-			} else {
-				indeedMsg = "Successfully Scrape Datas From indeed.com"
-				return indeedDataList, indeedMsg, totalIndeedfound
 			}
 		} else {
 			break
 		}
 	}
 	endTime = time.Since(startTime)
-	indeedMsg = "Successfully Scrape Datas From indeed.com"
+
+	// Return all results
+	indeedMsg = fmt.Sprintf("Successfully Scrape Datas From indeed.com")
 	fmt.Println(endTime)
 	return indeedDataList, indeedMsg, totalIndeedfound
 }
-
-// ctx, _ := context.WithTimeout(ctx, time.Second)
-// ctx, _ = chromedp.NewContext(ctx)
-// var cookies string
-// if err := chromedp.Run(ctx,
-// 	chromedp.Navigate(ts.URL),
-// 	chromedp.Text("#cookies", &cookies),
-// ); err != nil {
-// 	panic(err)
-// }
