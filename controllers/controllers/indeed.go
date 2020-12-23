@@ -46,7 +46,7 @@ func GetIndeedData(search string) (IndeedResult []*IndeedDetail, Message string,
 		chromedp.WithLogf(log.Printf),
 	)
 	defer cancel()
-	ctx, cancel = context.WithTimeout(ctx, 3*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(indeedURL),
