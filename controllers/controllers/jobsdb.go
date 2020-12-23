@@ -41,33 +41,41 @@ var (
 // GetJobsDBData = Scrape data from jobsdb.com
 func GetJobsDBData(search string) (JobsDBdetail []*JobsDBDetail, Message string, TotalJobsDB int) {
 	var jobsdblist []*JobsDBDetail
+	// Replace the search keywords to the correct format for jobsdb.com
 	searchContent := strings.ReplaceAll(search, " ", "+")
 	jobsDBURL = strings.Replace(jobsDBURL, "{search-content}", searchContent, 1)
-	fmt.Println(jobsDBURL)
+	// Create new context background
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
 		chromedp.WithLogf(log.Printf),
 	)
 	defer cancel()
+	// Set the timeout limit
 	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
+	// Start to navigate to the jobsDB URL
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(jobsDBURL),
 		chromedp.Sleep(1*time.Second),
 	); err != nil {
 		jobsDBErrMsg = fmt.Sprintf("Navigation Error, Please Try Again Later!\n%v", err)
+		fmt.Println(jobsDBErrMsg)
 		return jobsdblist, jobsDBErrMsg, 0
 	}
+	// Looping to get data until timeout limit reached / total data limit reached / pages limit reached
 	for {
+		// Start to get the main section
 		if err := chromedp.Run(ctx,
 			chromedp.Nodes(`div[class="job-container result organic-job"]`, &nodeJobsDBMain, chromedp.ByQueryAll, chromedp.AtLeast(0)),
 		); err != nil {
 			jobsDBErrMsg = fmt.Sprintf("Error to Get Main Division, Please Try Again Later\n%v", err)
 			return jobsdblist, jobsDBErrMsg, 0
 		}
-		fmt.Println(len(nodeJobsDBMain))
+		// Return the total data found
 		totalJobsDB += len(nodeJobsDBMain)
+		// Check the section found, if more than 0 then continue
 		if len(nodeJobsDBMain) > 0 {
+			// Get details from the main section
 			for i := 0; i < (len(nodeJobsDBMain)); i++ {
 				if err := chromedp.Run(ctx,
 					chromedp.Text(`div.job-item-top-container > h3`, &jobsdbTitle, chromedp.ByQuery, chromedp.AtLeast(0), chromedp.FromNode(nodeJobsDBMain[i])),
@@ -101,6 +109,7 @@ func GetJobsDBData(search string) (JobsDBdetail []*JobsDBDetail, Message string,
 					jobsdbCompany = "No Stated"
 				}
 				jobsdbLink = jobsdbBaseURL + jobsdbLink
+				// Append data get to the list
 				jobsdblist = append(jobsdblist, &JobsDBDetail{
 					Title:       jobsdbTitle,
 					Company:     jobsdbCompany,
@@ -111,14 +120,14 @@ func GetJobsDBData(search string) (JobsDBdetail []*JobsDBDetail, Message string,
 				})
 			}
 			// Next page navigation
-			// multi-pages-pagination pagination-container
+			// Check the next page navigation availability
 			if err := chromedp.Run(ctx,
 				chromedp.Nodes(`a.next-page-button`, &nodeJobsDBNext, chromedp.ByQuery, chromedp.AtLeast(0)),
 			); err != nil {
 				jobsDBErrMsg = fmt.Sprintf("Error to Get Next Page Division From JobsDB, Please Try Again Later\n%v", err)
 				return jobsdblist, jobsDBErrMsg, totalJobsDB
 			}
-			fmt.Println(len(nodeJobsDBNext))
+			// data limit, if reached 200 will break the loop and return all results
 			if totalJobsDB < 200 {
 				if len(nodeJobsDBNext) == 1 {
 					if err := chromedp.Run(ctx,
@@ -127,6 +136,7 @@ func GetJobsDBData(search string) (JobsDBdetail []*JobsDBDetail, Message string,
 						jobsDBErrMsg = fmt.Sprintf("Error to Get Next Page Navigate From JobsDB, Please Try Again Later\n%v", err)
 						return jobsdblist, jobsDBErrMsg, totalJobsDB
 					}
+					// Next page URL
 					jobsdbNextPageURL = jobsdbBaseURL + jobsdbNextMap["href"]
 					fmt.Println(jobsdbNextPageURL)
 					if err := chromedp.Run(ctx,
@@ -144,6 +154,7 @@ func GetJobsDBData(search string) (JobsDBdetail []*JobsDBDetail, Message string,
 			break
 		}
 	}
+	// Return all results
 	jobsDBErrMsg = fmt.Sprintf("Successfully Scrape Data From JobsDB.com")
 	return jobsdblist, jobsDBErrMsg, totalJobsDB
 }
